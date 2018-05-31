@@ -1,6 +1,7 @@
 #include "colors.inc"
 #include "finish.inc"
 #include "textures.inc"
+#include "rand.inc"
 //#include "koSy.inc"
 
 // Basic Scene
@@ -35,47 +36,40 @@ HelperLine(<-5, 0, 1>, Yellow)
 
 // ANN
 #declare Size = 3;
-#declare Shape = array[Size] {2, 3, 1};
+#declare Shape = array[Size] {2, 3, 2};
 
-#declare Weights1 = array[Shape[0]][Shape[1]] {
-	{1, 2, 1},
-	{1, 1, 1}	
-};
-#declare Weights2 = array[Shape[1]][Shape[2]] {
-	{1},
-	{1},
-	{1}
-};
+#declare Weights1 = array[Shape[1]][Shape[0]];
+#declare Weights2 = array[Shape[2]][Shape[1]];
 
 // Init W1
-// #declare i = 0;
-// #while (i < Shape[0])
+#declare i = 0;
+#while (i < Shape[0])
 
-// 	#declare j = 0;
-// 	#while (j < Shape[1])
+	#declare j = 0;
+	#while (j < Shape[1])
 	
-// 		#declare Weights1[i][j] = 0;
+		#declare Weights1[j][i] = RRand(0.1, 0.9, RdmA);
 		
-// 		#declare j = j + 1;
-// 	#end	
+		#declare j = j + 1;
+	#end	
 
-// 	#declare i = i + 1;
-// #end
+	#declare i = i + 1;
+#end
 
 // Init W2
-// #declare i = 0;
-// #while (i < Shape[1])
+#declare i = 0;
+#while (i < Shape[1])
 
-// 	#declare j = 0;
-// 	#while (j < Shape[2])
+	#declare j = 0;
+	#while (j < Shape[2])
 	
-// 		#declare Weights2[i][j] = 0;
+		#declare Weights2[j][i] = RRand(0.1, 0.9, RdmA);
 		
-// 		#declare j = j + 1;
-// 	#end	
+		#declare j = j + 1;
+	#end	
 
-// 	#declare i = i + 1;
-// #end
+	#declare i = i + 1;
+#end
 
 #declare zNeuronDist = 1;  // Distance between two neurons on the Z-axis
 #declare xNeuronDist = 2;  // Distance between two neurons on the X-axis
@@ -89,19 +83,19 @@ HelperLine(<-5, 0, 1>, Yellow)
 	#declare i = i + 1;
 #end
 
-// Neuran Class
+// Classes
 #macro Neuron (position)
 sphere {
-	position, 0.1
+	position, 0.2
 	texture {Chrome_Metal}	
 }
 #end
 
 #macro Weight (startPt, endPt, weight)
 cylinder {
-	startPt, endPt, weight
+	startPt, endPt, 0.1 * weight
 	texture {
-		pigment {color Red}
+		pigment {color rgb<weight, 0, 1 - weight>}
 		finish {}
 		}	
 }
@@ -114,7 +108,7 @@ cylinder {
 	#declare j = 0;
 	#while (j < Shape[i])
 		
-		Neuron(LayerCenter [i] + <0, 0, (-Shape[i] / 2 + j) * zNeuronDist + zNeuronDist / 2>)
+		Neuron(LayerCenter [i] + <0, 0, (Shape[i] / 2 - j) * zNeuronDist - zNeuronDist / 2>)
 		
 		#declare j = j + 1;
 	#end
@@ -132,24 +126,19 @@ cylinder {
 		#declare i1 = 0;
 		#while (i1 < Shape[i + 1])
 	
-			#declare p1 = LayerCenter [i] + <0, 0, (-Shape[i] / 2 + i0) * zNeuronDist + zNeuronDist / 2>;
-			#declare p2 = LayerCenter [i + 1] + <0, 0, (-Shape[i + 1] / 2 + i1) * zNeuronDist + zNeuronDist / 2>;
+			#declare p1 = LayerCenter [i] + <0, 0, (Shape[i] / 2 - i0) * zNeuronDist - zNeuronDist / 2>;
+			#declare p2 = LayerCenter [i + 1] + <0, 0, (Shape[i + 1] / 2 - i1) * zNeuronDist - zNeuronDist / 2>;
 			
 			#if (i = 0)
-				#declare weight = Weights1[i0][i1];
+				#declare weight = Weights1[i1][i0];
 				
 			#else
-				#declare weight = Weights2[i0][i1];
+				#declare weight = Weights2[i1][i0];
 			
 			#end
 			
+			Weight(p1, p2, weight)
 			
-			
-			Weight(p1, p2, weight * 0.01)
-			
-			
-		
-	
 			#declare i1 = i1 + 1;
 		#end
 	
@@ -158,6 +147,33 @@ cylinder {
 
 	#declare i = i + 1;
 #end
+
+// Evaluate
+#declare input = array[2] {1, 1};
+
+#declare i = 1;
+#while (i < Size)
+
+	#declare LayerInput = array[
+
+	#declare l1 = 0;
+	#while (l1 < Shape[i])
+	
+		#declare l1 = 0;
+		#while (l1 < Shape[i])
+		
+			
+		
+			#declare l1 = l1 + 1;
+		#end
+		
+		#declare l1 = l1 + 1;
+	#end
+	
+	#declare i = i + 1;
+#end
+
+
 
 
 
