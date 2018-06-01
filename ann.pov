@@ -6,7 +6,7 @@
 
 // Basic Scene
 camera {
-	location <2, 5, 0>
+	location <2, 5, -3>
 	look_at <2, 0, 0>
 }
 
@@ -17,13 +17,16 @@ light_source {
 
 plane {
 	<0, 1, 0>, 0
-	texture {DMFWood4}
+	texture {
+		pigment {checker Gray80 Gray95}
+		finish {Phong_Shiny}
+	}
 }
 
 // Helper
 #macro HelperLine (pos, col)
 cylinder {
-	pos, pos + <10,0,0>, 0.005 
+	pos, pos + <15,0,0>, 0.005 
          pigment{color col}
 }
 #end
@@ -43,9 +46,43 @@ HelperLine(<-5, 0, 1>, Yellow)
 	{-14.86579363, 7.06784888},
 	{5.94776516, -13.18882104}
 };
+
 #declare Weights2 = array[Shape[2]][Shape[1]] {
 	{5.21130487, -10.74472035, -6.11404724}
 };
+
+/*#declare Weights1 = array[Shape[1]][Shape[0]];
+#declare Weights2 = array[Shape[2]][Shape[1]];
+
+// Init W1
+#declare i = 0;
+#while (i < Shape[0])
+
+	#declare j = 0;
+	#while (j < Shape[1])
+	
+		#declare Weights1[j][i] = 15 * RRand(-0.9, 0.9, RdmB);
+		
+		#declare j = j + 1;
+	#end	
+
+	#declare i = i + 1;
+#end
+
+// Init W2
+#declare i = 0;
+#while (i < Shape[1])
+
+	#declare j = 0;
+	#while (j < Shape[2])
+	
+		#declare Weights2[j][i] = 15 * RRand(-0.9, 0.9, RdmB);
+		
+		#declare j = j + 1;
+	#end	
+
+	#declare i = i + 1;
+#end*/
 
 #declare zNeuronDist = 1;  // Distance between two neurons on the Z-axis
 #declare xNeuronDist = 2;  // Distance between two neurons on the X-axis
@@ -54,16 +91,27 @@ HelperLine(<-5, 0, 1>, Yellow)
 #declare i = 0;
 #while (i < Size)
 	
-	#declare LayerCenter[i] = <i * xNeuronDist, 0, 0>;
+	#declare LayerCenter[i] = <i * xNeuronDist, 0.2, 0>;
 	
 	#declare i = i + 1;
 #end
 
 // Classes
-#macro Neuron (position)
+#macro Neuron (position, layer)
 sphere {
 	position, 0.2
-	texture {Chrome_Metal}	
+	texture {
+		#if (layer = 0)
+			pigment {color CornflowerBlue}
+			
+		#elseif (layer = 1)
+			pigment {color DarkOliveGreen}
+			
+		#elseif (layer = 2)
+			pigment {color DarkSlateGrey}
+			
+		#end
+	}	
 }
 #end
 
@@ -73,7 +121,7 @@ cylinder {
 	texture {
 		pigment {color rgb<(weight + 1) / 2, 0, 1 - (weight + 1) / 2>}
 		finish {}
-		}	
+	}	
 }
 #end
 
@@ -84,7 +132,7 @@ sphere {
 		#if (value >= 0.5)
 			pigment {color White}
 		#else
-			pigment {color Black)
+			pigment {color Black}
 		#end	
 	}	
 }
@@ -97,7 +145,7 @@ sphere {
 	#declare j = 0;
 	#while (j < Shape[i])
 		
-		Neuron(LayerCenter [i] + <0, 0, (Shape[i] / 2 - j) * zNeuronDist - zNeuronDist / 2>)
+		Neuron(LayerCenter [i] + <0, 0, (Shape[i] / 2 - j) * zNeuronDist - zNeuronDist / 2>, i)
 		
 		#declare j = j + 1;
 	#end
@@ -136,13 +184,13 @@ sphere {
 #end
 
 // Evaluate
-#declare NetInput = array[2][1] {{1}, {1}};
+#declare NetInput = array[2][1] {{0}, {0}};
 #declare LayerInput = NetInput;
+
+#declare HL = array[Shape[1]][Shape[0]];
 
 #declare i = 0;
 #while (i < Size -1)
-
-//	#declare LayerInput = array[Shape[i + 1]][1];
 
 	#declare LayerOutput = array[Shape[i + 1]][1];
 
@@ -153,9 +201,6 @@ sphere {
 	
 		#declare l0 = 0;
 		#while (l0 < Shape[i ])
-		
-			//#warning concat("i: ", str(i, 1, 1), ", l0: ", str(l0, 1, 1), ", l1: ", str(l1, 1, 1))
-			
 			
 			#if (i = 0)
 				#declare rowSum = rowSum + Weights1[l1][l0] * LayerInput[l0][0];
@@ -165,7 +210,6 @@ sphere {
 			
 			#end
 			
-		
 			#declare l0 = l0 + 1;
 		#end
 		
@@ -175,6 +219,11 @@ sphere {
 		#declare LayerOutput[l1][0] = rowSum;
 		
 		#declare l1 = l1 + 1;
+	#end
+	
+	#if (i = 0)
+		#declare HL = LayerOutput;
+		
 	#end
 	
 	#declare LayerInput = LayerOutput;
@@ -208,11 +257,13 @@ sphere {
 		
 		#declare i1 = 0;
 		#while (i1 < Shape[1])
+		
+			#declare value =  Weights1[i1][i0] * NetInput[i0][0];
 	
 			#declare p1 = LayerCenter [0] + <0, 0, (Shape[0] / 2 - i0) * zNeuronDist - zNeuronDist / 2>;
 			#declare p2 = LayerCenter [1] + <0, 0, (Shape[1] / 2 - i1) * zNeuronDist - zNeuronDist / 2>;
 
-			Put(p1 * (1 - (clock - 1) / 2) + p2 * (clock - 1) / 2, 1)
+			Put(p1 * (1 - (clock - 1) / 2) + p2 * (clock - 1) / 2, value)
 			
 			#declare i1 = i1 + 1;
 		#end
@@ -228,11 +279,13 @@ sphere {
 		
 		#declare i1 = 0;
 		#while (i1 < Shape[2])
+		
+			#declare value =  Weights2[i1][i0] * HL[i0][0];
 	
 			#declare p1 = LayerCenter [1] + <0, 0, (Shape[1] / 2 - i0) * zNeuronDist - zNeuronDist / 2>;
 			#declare p2 = LayerCenter [2] + <0, 0, (Shape[2] / 2 - i1) * zNeuronDist - zNeuronDist / 2>;
 
-			Put(p1 * (1 - (clock - 3) / 2)  + p2 * (clock - 3) / 2, 1)
+			Put(p1 * (1 - (clock - 3) / 2)  + p2 * (clock - 3) / 2, value)
 			
 			#declare i1 = i1 + 1;
 		#end
@@ -247,15 +300,16 @@ sphere {
 	#while (i < Shape[2])
 
 		#declare relPos = <clock - 4 * zNeuronDist, 0, 0>;
+		#declare value = LayerOutput[0][0];
+		
+		#warning str(value, 2, 2)
 
-		Put(LayerCenter [2] + <0, 0, (Shape[2] / 2 - i) * zNeuronDist - zNeuronDist / 2> + <-1, 0, 0> + relPos, 1)
+		Put(LayerCenter [2] + <0, 0, (Shape[2] / 2 - i) * zNeuronDist - zNeuronDist / 2> + <-1, 0, 0> + relPos, value)
 	
 		#declare i = i + 1;
 	#end
 
 #end
-
-#warning str(clock, 2, 2)
 
 
 
