@@ -39,9 +39,9 @@ HelperLine(<-5, 0, 1>, Yellow)
 
 // ANN
 #declare Size = 3;
-#declare Shape = array[Size] {2, 3, 1};
+#declare Shape = array[Size] {2, 5, 2};
 
-#declare Weights1 = array[Shape[1]][Shape[0]] {
+/*#declare Weights1 = array[Shape[1]][Shape[0]] {
 	{-5.74501215, 12.78399623},
 	{-14.86579363, 7.06784888},
 	{5.94776516, -13.18882104}
@@ -49,9 +49,9 @@ HelperLine(<-5, 0, 1>, Yellow)
 
 #declare Weights2 = array[Shape[2]][Shape[1]] {
 	{5.21130487, -10.74472035, -6.11404724}
-};
+};*/
 
-/*#declare Weights1 = array[Shape[1]][Shape[0]];
+#declare Weights1 = array[Shape[1]][Shape[0]];
 #declare Weights2 = array[Shape[2]][Shape[1]];
 
 // Init W1
@@ -82,7 +82,7 @@ HelperLine(<-5, 0, 1>, Yellow)
 	#end	
 
 	#declare i = i + 1;
-#end*/
+#end
 
 #declare zNeuronDist = 1;  // Distance between two neurons on the Z-axis
 #declare xNeuronDist = 2;  // Distance between two neurons on the X-axis
@@ -182,9 +182,9 @@ sphere {
 
 	#declare i = i + 1;
 #end
-
+/*
 // Evaluate
-#declare NetInput = array[2][1] {{0}, {0}};
+#declare NetInput = array[2][1] {{1}, {0}};
 #declare LayerInput = NetInput;
 
 #declare HL = array[Shape[1]][Shape[0]];
@@ -312,7 +312,7 @@ sphere {
 #end
 
 
-
+*/
 
 
 
